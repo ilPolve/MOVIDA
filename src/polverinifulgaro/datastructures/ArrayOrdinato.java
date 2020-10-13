@@ -1,19 +1,21 @@
 package polverinifulgaro.datastructures;
 
+import java.util.Collection;
+
 public class ArrayOrdinato implements IDizionario {
 
     private Coppia[] array;
-    private int usedSlot; //Numero degli elementi attualmente presenti(usato principalmente per ridimensionare l'array)
+    private int used; //Numero delle posizioni attualmente occupate(usato principalmente per ridimensionare l'array)
 
     public ArrayOrdinato() {
         array = new Coppia[1];
-        usedSlot = 0;
+        used = 0;
     }
 
     /**
-     * Implementazione dell'operazione di inserimento
-     * @param key del nuovo elemento inserito
-     * @param value valore
+     * Operazione di inserimento
+     * @param key del nuovo elemento inserito (e.g. titolo -> film, cognome -> persona)
+     * @param value valore del nuovo elemento (e.g. oggetto Movie -> film, nome -> persona)
      */
     @Override
     public void insert(Comparable key, Object value) {
@@ -22,28 +24,28 @@ public class ArrayOrdinato implements IDizionario {
 
         if (key == null) throw new IllegalArgumentException("The provided key is invalid! Key: " + key);
         else {
-            //Array size doubled when "load factor" > 0.5
-            if(usedSlot + 1 >= array.length / 2) temp = new Coppia[array.length * 2];
+            //Dimensione dell'array raddoppiata quando "fattore di carico" > 0.5
+            if(used + 1 >= array.length / 2) temp = new Coppia[array.length * 2];
             else temp = new Coppia[array.length];
 
-            //Creation of the new item (useful to obtain a null-safe compareTo())
+            //Creazione del nuovo elemento(utile per ottenere una versione null-safe di compareTo())
             Coppia newItem = new Coppia(key, value);
 
-            //Copy of the elements of array whose key <= newItem.key into temp
-            while(newItem.compareTo(array[i]) > 0 && i < usedSlot) i = i + 1;
+            //Tutti gli elementi con key <= newItem.key vengono copiati in temp
+            while(newItem.compareTo(array[i]) > 0 && i < used) i = i + 1;
             System.arraycopy(array, 0, temp, 0, i);
-            //New pair is placed in the right position inside tmp and usedSlot is updated accordingly
+            //Il nuovo oggetto viene posizionato in temp e UsedSlot viene aggiornato
             temp[i] = newItem;
-            usedSlot = usedSlot + 1;
-            //The remaining portion of the array is now copied into tmp and then temp is assigned to array
+            used = used + 1;
+            //La rimanente porzione dell'array viene ricopiata in temp che viene, infine, assegnato a array
             System.arraycopy(array, i, temp, i+1, array.length - i - 1);
             array = temp;
         }
     }
 
     /**
-     * Implementation of delete operation
-     * @param key of the element to delete
+     * Operazione di eliminazione
+     * @param key dell'elemento da eliminare
      */
     @Override
     public void delete(Comparable key) {
@@ -51,48 +53,67 @@ public class ArrayOrdinato implements IDizionario {
 
         if (key == null) throw new IllegalArgumentException("The provided key is invalid! Key: " + key);
         else {
-            //Array size halved when "load factor" < 0.25
-            if(usedSlot - 1 < array.length / 4) temp = new Coppia[array.length / 2];
+            //La dimensione dell'array viene dimezzata quando "fattore di carico" < 0.25
+            if(used - 1 < array.length / 4) temp = new Coppia[array.length / 2];
             else temp = new Coppia[array.length];
 
-            //Exact position of the element is determined by a search
-            Integer target = dicSearch(key, 0, usedSlot);
+            //La posizione esatta dell'elemento viene determinata con una ricerca
+            Integer target = dicSearch(key, 0, used);
 
-            //Everything before target index is copied into temp
+            //Tutto quello che c'è prima dell'indice target viene copiato così com'è in temp
             System.arraycopy(array, 0, temp, 0, target);
-            //Every item from the last to the element next to target index is shifted to left by one
-            for(int i = target; i < usedSlot - 1; i++) temp[i] = array[i + 1];
-            //The last item is set to null (not mandatory) and usedSlot is updated
-            temp[usedSlot] = null;
-            usedSlot = usedSlot - 1;
+            //Ogni elemento, a partire dall'ultimo fino a quello di posto target + 1, viene spostato di una posizione a sinistra
+            for(int i = target; i < used - 1; i++) temp[i] = array[i + 1];
+            //Anche se non è obbligatorio, l'ultima posizione di temp è posta uguale a null e UsedSlot è aggionato
+            temp[used] = null;
+            used = used - 1;
 
             array = temp;
         }
     }
 
     /**
-     * Search operation is implemented by a binary search because is the quickest way to find an element into a sorted
-     * array of element. The actual search operation is realized by dicSearch making possible to change binary search
-     * with any other algorithm of your please.
-     * @param key is the key object to look for into the dictionary
-     * @return null if given key is not in the dictionary or the Coppia object if it is present
+     * L'operazione di ricerca è implementata dalla funzione dicSearch() che, in questo caso, implementa una ricerca binaria.
+     * Nel caso in cui si voglia cambiare algoritmo, basterà cambiare solamente dicSearch().
+     * @param key dell'oggetto da cercare
+     * @return null se key == null, l'array è vuoto o se target == null, l'oggetto Coppia di indice target altrimenti
      */
     @Override
     public Object search(Comparable key) {
         if(key == null) throw new IllegalArgumentException();
-        if(usedSlot <= 0) return null;
+        if(used <= 0) return null;
         else {
-            Integer target = dicSearch(key, 0, usedSlot);
+            Integer target = dicSearch(key, 0, used);
             return (target == null) ? null : array[target];
         }
     }
 
     /**
-     * Actual implementation of a binary search.
-     * @param key is the key object to look for into the dictionary
-     * @param start is the first index of the current portion of the array
-     * @param end is the last index of the current portion of the array
-     * @return null if given key is not in the dictionary or the position of the element with @param key as key.
+     * @return collection di tutte le chiavi
+     */
+    @Override
+    public Collection keys() {
+        Collection temp = null;
+        for(int i = 0; i < array.length; i++) temp.add(array[i].getKey());
+        return temp;
+    }
+
+    /**
+     * @return collection di tutti i valori
+     */
+    @Override
+    public Collection values() {
+        Collection temp = null;
+        for(int i = 0; i < array.length; i++) temp.add(array[i].getValue());
+        return temp;
+    }
+
+    /**
+     * Implementazione della ricerca binaria.
+     * @param key dell'oggetto che stiamo cercando
+     * @param start è l'indice iniziale della porzione di array in esame
+     * @param end è l'indice finale della porzione di array in esame
+     * @return indice dell'array in cui si trova key; null se la chiave non è stata trovata o.
      */
     private Integer dicSearch(Comparable key, Integer start, Integer end){
         if(start > end) return null;
@@ -100,15 +121,5 @@ public class ArrayOrdinato implements IDizionario {
         if(array[middle].getKey().compareTo(key) == 0) return middle;
         else if(array[middle].getKey().compareTo(key) > 0) return dicSearch(key, start, middle-1);
         else return dicSearch(key, middle+1, end);
-    }
-
-    /**
-     * Utility created to visualize the database in a JSON format (quite...)
-     */
-    public void print() {
-        for (int i = 0; i < usedSlot; i++) {
-            if(array[i] != null) System.out.println(array[i].getKey() + " " + array[i].getValue());
-            else System.out.println("null");
-        }
     }
 }

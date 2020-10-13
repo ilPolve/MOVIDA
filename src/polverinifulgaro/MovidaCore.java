@@ -10,7 +10,6 @@ import java.io.*;
 public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMovidaConfig, IMovidaDB  {
 
     private IDizionario MoviesDB = null, PeopleDB = null;
-    private int MoviesCount = 0, PeopleCount = 0; //TODO: movies&people can be added in other ways not only with loadFromFile
 
     /**
      * Seleziona l'algoritmo di ordinamento.
@@ -154,7 +153,6 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
     @Override
     public void clear() {
         this.MoviesDB = this.PeopleDB = null;
-        this.MoviesCount = this.PeopleCount = 0;
     }
 
     /**
@@ -164,7 +162,7 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
      */
     @Override
     public int countMovies() {
-        return this.MoviesCount;
+        return MoviesDB.keys().size();
     }
 
     /**
@@ -174,7 +172,7 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
      */
     @Override
     public int countPeople() {
-        return this.PeopleCount;
+        return PeopleDB.keys().size();
     }
 
     /**
@@ -222,9 +220,7 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
      */
     @Override
     public Movie[] getAllMovies() {
-        Movie[] allMovies = new Movie[this.MoviesCount];
-        //for(Movie item : ) //TODO: come cazzo ottengo tutti i film? Metodo ausiliario?
-        return allMovies;
+        return (Movie [])MoviesDB.values().toArray();
     }
 
     /**
@@ -234,7 +230,6 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
      */
     @Override
     public Person[] getAllPeople() {
-        //TODO: stesso problema di tutti i film
-        return new Person[0];
+        return (Person [])PeopleDB.values().toArray();
     }
 }

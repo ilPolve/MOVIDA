@@ -12,18 +12,10 @@ public final class Coppia {
     Comparable getKey(){ return this.key; }
     Object getValue(){ return this.value; }
 
-    public void print(){
-        System.out.print(
-                //"Coppia: { " +
-                "{ key:" + getKey() +
-                " value:" + getValue() + " }"
-        );
-    }
-
     /**
      * A null-safe compareTo version
-     * @param obj
-     * @return
+     * @param obj to compare against this
+     * @return -1 if obj == null or this.compareTo(obj) otherwise
      */
     public int compareTo(Coppia obj){
         if(obj == null) return -1;
