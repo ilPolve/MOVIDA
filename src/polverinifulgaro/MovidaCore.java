@@ -6,6 +6,7 @@ import polverinifulgaro.datastructures.HashIndirizzamentoAperto;
 import polverinifulgaro.datastructures.IDizionario;
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMovidaConfig, IMovidaDB  {
 
@@ -98,35 +99,46 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
             String line, values[];
             int count;
 
-            reader = new BufferedReader((new FileReader(f))); //FileReader wrapped into a BufferedReader to use readLine()
+            reader = new BufferedReader((new FileReader(f))); //FileReader usato per creare un BufferedReader e usare readLine()
             while((line = reader.readLine()) != null){
                 count = 0;
                 values = new String[5];
 
                 for(MovieFields field : MovieFields.values()){
-                    if(line.startsWith(field.toString() + ":")) { //Enum fields is used to recognize which attribute is being processed
-                        if(values[field.ordinal()] != null){ //If an attribute is readed twice an exception is thrown
-                            count = count + 1; //A count is manteined to check if one or more attributes are missing
+                    if(line.startsWith(field.toString() + ":")) { //L'enumerazione fields è usata per riconoscere l'attributo processato
+                        if(values[field.ordinal()] != null){ //Attributo ripetuto == struttura non rispettata == eccezione sollevata
+                            count = count + 1; //Un contatore segnala quanti attributi DIVERSI sono stati processati, se != 5 -> eccezione sollevata
                             values[field.ordinal()] = line.substring(field.toString().length() + 1).trim();
                         }else throw new MovidaFileException();
                     }
                 }
-                if(!line.isBlank() || count != 5) throw new MovidaFileException(); //Another check on file structure (blank line between records)
+                if(!line.isBlank() || count != 5) throw new MovidaFileException(); //Se c'è una linea bianca fuori contesto (cioè non separa due record) -> eccezione sollevata
                 else {
-                    //If everything is okay, finally we create the movie record
+                    ArrayList<Person> cast = new ArrayList<>();
+                    //La linea contenente il cast è spezzata usando la virgola come separatore
+                    for(String x : values[3].split(",")){
+                        x = x.trim();
+                        //L'esistenza di ogni persona del cast è verificata, se non esiste già viene aggiunta a PeopleDB
+                        if(PeopleDB.search(x) == null) PeopleDB.insert(x, x);
+                        cast.add(new Person(x));
+                    }
+                    //La stessa operazione è fatta con il direttore
+                    if(PeopleDB.search(values[3].trim()) == null) PeopleDB.insert(values[3].trim(), values[3].trim());
+
+                    //Se tutto è in ordine, finalmente l'oggetto Movie viene creato e inserito
                     Movie newMovie = new Movie(
                             values[0],
                             Integer.valueOf(values[1]),
                             Integer.valueOf(values[2]),
-                            values[3], //TODO: slice the cast line, check if every person already exists or not, insert into Person db?
-                            new Person(values[4])); //TODO: check  if director already exist
+                            cast.toArray(new Person[0]),
+                            new Person(values[4]));
                     MoviesDB.insert(values[0], newMovie);
                 }
             }
+
+            reader.close();
         }catch(Exception e){
             throw new MovidaFileException();
-        }finally {
-            //reader.close();
         }
     }
 
