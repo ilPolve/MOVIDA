@@ -9,7 +9,7 @@ public interface IDizionario {
 
     public Object search(Comparable key);
 
-    public Collection keys();
+    public Object[] keys();
 
-    public Collection values();
+    public Object[] values();
 }

@@ -1,6 +1,12 @@
 package polverinifulgaro.datastructures;
 
+import movida.commons.Movie;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.stream.Stream;
 
 public class ArrayOrdinato implements IDizionario {
 
@@ -87,27 +93,7 @@ public class ArrayOrdinato implements IDizionario {
             return (target == null) ? null : array[target];
         }
     }
-
-    /**
-     * @return collection di tutte le chiavi
-     */
-    @Override
-    public Collection keys() {
-        Collection temp = null;
-        for(int i = 0; i < array.length; i++) temp.add(array[i].getKey());
-        return temp;
-    }
-
-    /**
-     * @return collection di tutti i valori
-     */
-    @Override
-    public Collection values() {
-        Collection temp = null;
-        for(int i = 0; i < array.length; i++) temp.add(array[i].getValue());
-        return temp;
-    }
-
+    
     /**
      * Implementazione della ricerca binaria.
      * @param key dell'oggetto che stiamo cercando
@@ -116,10 +102,30 @@ public class ArrayOrdinato implements IDizionario {
      * @return indice dell'array in cui si trova key; null se la chiave non è stata trovata o.
      */
     private Integer dicSearch(Comparable key, Integer start, Integer end){
-        if(start > end) return null;
-        Integer middle = Math.floorDiv(start + end, 2);
+        if(start >= end) return null;
+        int middle = Math.floorDiv(start + end, 2);
         if(array[middle].getKey().compareTo(key) == 0) return middle;
         else if(array[middle].getKey().compareTo(key) > 0) return dicSearch(key, start, middle-1);
         else return dicSearch(key, middle+1, end);
+    }
+    
+    /**
+     * @return collection di tutte le chiavi
+     */
+    @Override
+    public Object[] keys() {
+        Object[] retVal = new Object[used];
+        for(int i = 0; i < used; i++) retVal[i] = array[i].getKey();
+        return retVal;
+    }
+
+    /**
+     * @return collection di tutti i valori
+     */
+    @Override
+    public Object[] values() {
+        Object[] retVal = new Object[used];
+        for(int i = 0; i < used; i++) retVal[i] = array[i].getValue();
+        return retVal;
     }
 }

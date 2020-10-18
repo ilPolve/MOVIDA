@@ -4,7 +4,7 @@ public final class Coppia {
     Comparable key;
     Object value;
 
-    Coppia(Comparable key, Object value){
+    public Coppia(Comparable key, Object value){
         this.key = key;
         this.value = value;
     }
@@ -13,12 +13,20 @@ public final class Coppia {
     Object getValue(){ return this.value; }
 
     /**
-     * A null-safe compareTo version
-     * @param obj to compare against this
-     * @return -1 if obj == null or this.compareTo(obj) otherwise
+     * Versione null-safe di compareTo tra coppie
+     * @param obj da comparare a questo
+     * @return -1 se obj == null oppure this.compareTo(obj) altrimenti
      */
     public int compareTo(Coppia obj){
         if(obj == null) return -1;
         else return this.key.compareTo(obj.getKey());
+    }
+    
+    @Override
+    public String toString(){
+        return "Coppia{" +
+                "key=" + key +
+                ", value=" + value +
+                '}';
     }
 }

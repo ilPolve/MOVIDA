@@ -6,11 +6,15 @@ import polverinifulgaro.datastructures.HashIndirizzamentoAperto;
 import polverinifulgaro.datastructures.IDizionario;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
-public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMovidaConfig, IMovidaDB  {
+public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMovidaConfig, IMovidaDB  {
 
-    private IDizionario MoviesDB = null, PeopleDB = null;
+    private IDizionario MoviesDB = new ArrayOrdinato();
+    private IDizionario PeopleDB = new ArrayOrdinato();
 
     /**
      * Seleziona l'algoritmo di ordinamento.
@@ -62,6 +66,126 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
     }
 
     /**
+     * Ricerca film per titolo.
+     * <p>
+     * Restituisce i film il cui titolo contiene la stringa
+     * <code>title</code> passata come parametro.
+     * <p>
+     * Per il match esatto usare il metodo <code>getMovieByTitle(String s)</code>
+     * <p>
+     * Restituisce un vettore vuoto se nessun film rispetta il criterio di ricerca.
+     *
+     * @param title titolo del film da cercare
+     * @return array di film
+     */
+    @Override
+    public Movie[] searchMoviesByTitle(String title) {
+        ArrayList<Movie> result = new ArrayList<>();
+        for(Movie x : getAllMovies()){
+            if(x.getTitle().contains(title)) result.add(x);
+        }
+        return (Movie[]) result.toArray();
+    }
+
+    /**
+     * Ricerca film per anno.
+     * <p>
+     * Restituisce i film usciti in sala nell'anno
+     * <code>anno</code> passato come parametro.
+     * <p>
+     * Restituisce un vettore vuoto se nessun film rispetta il criterio di ricerca.
+     *
+     * @param year anno del film da cercare
+     * @return array di film
+     */
+    @Override
+    public Movie[] searchMoviesInYear(Integer year) {
+        return new Movie[0];
+    }
+
+    /**
+     * Ricerca film per regista.
+     * <p>
+     * Restituisce i film diretti dal regista il cui nome � passato come parametro.
+     * <p>
+     * Restituisce un vettore vuoto se nessun film rispetta il criterio di ricerca.
+     *
+     * @param name regista del film da cercare
+     * @return array di film
+     */
+    @Override
+    public Movie[] searchMoviesDirectedBy(String name) {
+        return new Movie[0];
+    }
+
+    /**
+     * Ricerca film per attore.
+     * <p>
+     * Restituisce i film a cui ha partecipato come attore
+     * la persona il cui nome � passato come parametro.
+     * <p>
+     * Restituisce un vettore vuoto se nessun film rispetta il criterio di ricerca.
+     *
+     * @param name attore coinvolto nel film da cercare
+     * @return array di film
+     */
+    @Override
+    public Movie[] searchMoviesStarredBy(String name) {
+        return new Movie[0];
+    }
+
+    /**
+     * Ricerca film pi� votati.
+     * <p>
+     * Restituisce gli <code>N</code> film che hanno
+     * ricevuto pi� voti, in ordine decrescente di voti.
+     * <p>
+     * Se il numero di film totali � minore di N restituisce tutti i film,
+     * comunque in ordine.
+     *
+     * @param N numero di film che la ricerca deve resistuire
+     * @return array di film
+     */
+    @Override
+    public Movie[] searchMostVotedMovies(Integer N) {
+        return new Movie[0];
+    }
+
+    /**
+     * Ricerca film pi� recenti.
+     * <p>
+     * Restituisce gli <code>N</code> film pi� recenti,
+     * in base all'anno di uscita in sala confrontato con l'anno corrente.
+     * <p>
+     * Se il numero di film totali � minore di N restituisce tutti i film,
+     * comunque in ordine.
+     *
+     * @param N numero di film che la ricerca deve resistuire
+     * @return array di film
+     */
+    @Override
+    public Movie[] searchMostRecentMovies(Integer N) {
+        return new Movie[0];
+    }
+
+    /**
+     * Ricerca gli attori pi� attivi.
+     * <p>
+     * Restituisce gli <code>N</code> attori che hanno partecipato al numero
+     * pi� alto di film
+     * <p>
+     * Se il numero di attori � minore di N restituisce tutti gli attori,
+     * comunque in ordine.
+     *
+     * @param N numero di attori che la ricerca deve resistuire
+     * @return array di attori
+     */
+    @Override
+    public Person[] searchMostActiveActors(Integer N) {
+        return new Person[0];
+    }
+
+    /**
      * Carica i dati da un file, organizzato secondo il formato MOVIDA (vedi esempio-formato-dati.txt)
      * <p>
      * Un film � identificato in modo univoco dal titolo (case-insensitive), una persona dal nome (case-insensitive).
@@ -83,62 +207,49 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
      * This enumeration contains the attributes that a Movie is supposed to have.
      * It is used to check the the file structure.
      */
-    private enum MovieFields {
-        Title,
-        Year,
-        Votes,
-        Cast,
-        Director,
-    }
+    private final String[] allowedPatterns = {"Title:[ \\w||.:?!#]+", "Year: \\d{4}", "Director: [\\w .]+", "Cast: [\\w ,]+[^,]$", "Votes: \\d*", "\\s*"};
 
     @Override
     public void loadFromFile(File f) {
-        BufferedReader reader = null;
-
+        BufferedReader reader;
+        
         try{
-            String line, values[];
-            int count;
-
-            reader = new BufferedReader((new FileReader(f))); //FileReader usato per creare un BufferedReader e usare readLine()
-            while((line = reader.readLine()) != null){
-                count = 0;
-                values = new String[5];
-
-                for(MovieFields field : MovieFields.values()){
-                    if(line.startsWith(field.toString() + ":")) { //L'enumerazione fields è usata per riconoscere l'attributo processato
-                        if(values[field.ordinal()] != null){ //Attributo ripetuto == struttura non rispettata == eccezione sollevata
-                            count = count + 1; //Un contatore segnala quanti attributi DIVERSI sono stati processati, se != 5 -> eccezione sollevata
-                            values[field.ordinal()] = line.substring(field.toString().length() + 1).trim();
-                        }else throw new MovidaFileException();
-                    }
-                }
-                if(!line.isBlank() || count != 5) throw new MovidaFileException(); //Se c'è una linea bianca fuori contesto (cioè non separa due record) -> eccezione sollevata
-                else {
+            reader = new BufferedReader((new FileReader(f)));
+        }catch(FileNotFoundException e){
+            throw new MovidaFileException();
+        }
+        
+        String[] record = new String[allowedPatterns.length];
+        try{
+            int i = 0;
+            while((record[i % (allowedPatterns.length)] = reader.readLine()) != null){
+                int index = i % (allowedPatterns.length);
+                record[index] = record[index].trim();
+                if(!record[index].matches(allowedPatterns[index])) throw new MovidaFileException();
+                else if(index == (allowedPatterns.length - 1)){ //TODO: fix case next line is EOF
+                    //Elinazione dell'intestazione della riga
+                    for(int j = 0; j < record.length; j++) record[j] = record[j].substring(record[j].indexOf(":") + 1).trim();
+                    
                     ArrayList<Person> cast = new ArrayList<>();
                     //La linea contenente il cast è spezzata usando la virgola come separatore
-                    for(String x : values[3].split(",")){
-                        x = x.trim();
+                    String[] values = record[3].split(",");
+                    for(int k = 0; k < values.length; k++){
+                        values[k] = values[k].trim();
                         //L'esistenza di ogni persona del cast è verificata, se non esiste già viene aggiunta a PeopleDB
-                        if(PeopleDB.search(x) == null) PeopleDB.insert(x, x);
-                        cast.add(new Person(x));
+                        if(PeopleDB.search(values[k]) == null) PeopleDB.insert(values[k], new Person(values[k]));
+                        cast.add(new Person(values[k]));
                     }
                     //La stessa operazione è fatta con il direttore
-                    if(PeopleDB.search(values[3].trim()) == null) PeopleDB.insert(values[3].trim(), values[3].trim());
-
+                    if(PeopleDB.search(record[2]) == null) PeopleDB.insert(record[2], new Person(record[2]));
+    
                     //Se tutto è in ordine, finalmente l'oggetto Movie viene creato e inserito
-                    Movie newMovie = new Movie(
-                            values[0],
-                            Integer.valueOf(values[1]),
-                            Integer.valueOf(values[2]),
-                            cast.toArray(new Person[0]),
-                            new Person(values[4]));
-                    MoviesDB.insert(values[0], newMovie);
+                    Movie newMovie = new Movie(record[0], Integer.valueOf(record[1]), Integer.valueOf(record[4]), cast.toArray(new Person[0]), new Person(record[2]));
+                    if(MoviesDB.search(record[0]) == null) MoviesDB.insert(record[0], newMovie);
                 }
+                i += 1;
             }
-
-            reader.close();
         }catch(Exception e){
-            throw new MovidaFileException();
+            e.printStackTrace();
         }
     }
 
@@ -174,7 +285,7 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
      */
     @Override
     public int countMovies() {
-        return MoviesDB.keys().size();
+        return MoviesDB.keys().length;
     }
 
     /**
@@ -184,7 +295,7 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
      */
     @Override
     public int countPeople() {
-        return PeopleDB.keys().size();
+        return PeopleDB.keys().length;
     }
 
     /**
@@ -232,7 +343,9 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
      */
     @Override
     public Movie[] getAllMovies() {
-        return (Movie [])MoviesDB.values().toArray();
+        ArrayList<Movie> retVal = new ArrayList<>();
+        for(Object x : MoviesDB.values()) retVal.add((Movie) x);
+        return retVal.toArray(new Movie[0]);
     }
 
     /**
@@ -242,6 +355,8 @@ public class MovidaCore implements /*IMovidaCollaborations, IMovidaSearch,*/ IMo
      */
     @Override
     public Person[] getAllPeople() {
-        return (Person [])PeopleDB.values().toArray();
+        ArrayList<Person> retVal = new ArrayList<>();
+        for(Object x : PeopleDB.values()) retVal.add((Person) x);
+        return retVal.toArray(new Person[0]);
     }
 }

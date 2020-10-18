@@ -19,12 +19,12 @@ public class HashIndirizzamentoAperto implements IDizionario {
     }
 
     @Override
-    public Collection keys() {
+    public Object[] keys() {
         return null;
     }
 
     @Override
-    public Collection values() {
+    public Object[] values() {
         return null;
     }
 }
