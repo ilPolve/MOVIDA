@@ -1,13 +1,5 @@
 package polverinifulgaro.datastructures;
 
-import movida.commons.Movie;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.stream.Stream;
-
 public class ArrayOrdinato implements IDizionario {
 
     private Coppia[] array;
@@ -31,15 +23,16 @@ public class ArrayOrdinato implements IDizionario {
         if (key == null) throw new IllegalArgumentException("The provided key is invalid! Key: " + key);
         else {
             //Dimensione dell'array raddoppiata quando "fattore di carico" > 0.5
-            if(used + 1 >= array.length / 2) temp = new Coppia[array.length * 2];
+            if(used+1 >= array.length/2) temp = new Coppia[array.length*2];
             else temp = new Coppia[array.length];
 
             //Creazione del nuovo elemento(utile per ottenere una versione null-safe di compareTo())
             Coppia newItem = new Coppia(key, value);
 
             //Tutti gli elementi con key <= newItem.key vengono copiati in temp
-            while(newItem.compareTo(array[i]) > 0 && i < used) i = i + 1;
+            while(newItem.compareTo(array[i]) >= 0 && i < used) i = i + 1;
             System.arraycopy(array, 0, temp, 0, i);
+            
             //Il nuovo oggetto viene posizionato in temp e UsedSlot viene aggiornato
             temp[i] = newItem;
             used = used + 1;
@@ -85,11 +78,11 @@ public class ArrayOrdinato implements IDizionario {
      * @return null se key == null, l'array è vuoto o se target == null, l'oggetto Coppia di indice target altrimenti
      */
     @Override
-    public Object search(Comparable key) {
+    public Coppia search(Comparable key) {
         if(key == null) throw new IllegalArgumentException();
         if(used <= 0) return null;
         else {
-            Integer target = dicSearch(key, 0, used);
+            Integer target = dicSearch(key, 0, used - 1);
             return (target == null) ? null : array[target];
         }
     }
@@ -101,8 +94,8 @@ public class ArrayOrdinato implements IDizionario {
      * @param end è l'indice finale della porzione di array in esame
      * @return indice dell'array in cui si trova key; null se la chiave non è stata trovata o.
      */
-    private Integer dicSearch(Comparable key, Integer start, Integer end){
-        if(start >= end) return null;
+    private Integer dicSearch(Comparable key, int start, int end){
+        if(start > end) return null;
         int middle = Math.floorDiv(start + end, 2);
         if(array[middle].getKey().compareTo(key) == 0) return middle;
         else if(array[middle].getKey().compareTo(key) > 0) return dicSearch(key, start, middle-1);
@@ -110,22 +103,27 @@ public class ArrayOrdinato implements IDizionario {
     }
     
     /**
-     * @return collection di tutte le chiavi
+     * @return array di tutte le chiavi
      */
     @Override
     public Object[] keys() {
         Object[] retVal = new Object[used];
-        for(int i = 0; i < used; i++) retVal[i] = array[i].getKey();
+        for(int i = 0; i < used; i++) retVal[i] = array[i].getKey() ;
         return retVal;
     }
-
+    
     /**
-     * @return collection di tutti i valori
+     * @return array di tutti i valori
      */
     @Override
     public Object[] values() {
         Object[] retVal = new Object[used];
         for(int i = 0; i < used; i++) retVal[i] = array[i].getValue();
         return retVal;
+    }
+    
+    @Override
+    public void clear(){
+        this.used = 0;
     }
 }

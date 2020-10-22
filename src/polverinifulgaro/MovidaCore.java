@@ -2,20 +2,26 @@ package polverinifulgaro;
 
 import movida.commons.*;
 import polverinifulgaro.datastructures.ArrayOrdinato;
+import polverinifulgaro.datastructures.Coppia;
 import polverinifulgaro.datastructures.HashIndirizzamentoAperto;
 import polverinifulgaro.datastructures.IDizionario;
 
 import java.io.*;
-import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 
 public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMovidaConfig, IMovidaDB  {
 
-    private IDizionario MoviesDB = new ArrayOrdinato();
-    private IDizionario PeopleDB = new ArrayOrdinato();
+    private IDizionario MoviesDB;
+    private IDizionario PeopleDB;
+    private MapImplementation currentMapImplementation;
 
+    public MovidaCore(){
+        MoviesDB = new ArrayOrdinato();
+        PeopleDB = new ArrayOrdinato();
+        currentMapImplementation = MapImplementation.ArrayOrdinato;
+    }
     /**
      * Seleziona l'algoritmo di ordinamento.
      * Se l'algortimo scelto non � supportato dall'applicazione
@@ -50,10 +56,11 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
             if(MoviesDB.getClass().toString().equals("ArrayOrdinato")){
                 MoviesDB_tmp = new HashIndirizzamentoAperto();
                 PeopleDB_tmp = new HashIndirizzamentoAperto();
-
+                currentMapImplementation = MapImplementation.HashIndirizzamentoAperto;
             }else{
                 MoviesDB_tmp = new ArrayOrdinato();
                 PeopleDB_tmp = new ArrayOrdinato();
+                currentMapImplementation = MapImplementation.ArrayOrdinato;
             }
 
             for(Movie x : getAllMovies()) MoviesDB_tmp.insert(x.getTitle(), x);
@@ -212,6 +219,7 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
     @Override
     public void loadFromFile(File f) {
         BufferedReader reader;
+        boolean isEOF = false;
         
         try{
             reader = new BufferedReader((new FileReader(f)));
@@ -220,36 +228,37 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
         }
         
         String[] record = new String[allowedPatterns.length];
-        try{
-            int i = 0;
-            while((record[i % (allowedPatterns.length)] = reader.readLine()) != null){
-                int index = i % (allowedPatterns.length);
-                record[index] = record[index].trim();
-                if(!record[index].matches(allowedPatterns[index])) throw new MovidaFileException();
-                else if(index == (allowedPatterns.length - 1)){ //TODO: fix case next line is EOF
-                    //Elinazione dell'intestazione della riga
-                    for(int j = 0; j < record.length; j++) record[j] = record[j].substring(record[j].indexOf(":") + 1).trim();
-                    
-                    ArrayList<Person> cast = new ArrayList<>();
-                    //La linea contenente il cast è spezzata usando la virgola come separatore
-                    String[] values = record[3].split(",");
-                    for(int k = 0; k < values.length; k++){
-                        values[k] = values[k].trim();
-                        //L'esistenza di ogni persona del cast è verificata, se non esiste già viene aggiunta a PeopleDB
-                        if(PeopleDB.search(values[k]) == null) PeopleDB.insert(values[k], new Person(values[k]));
-                        cast.add(new Person(values[k]));
-                    }
-                    //La stessa operazione è fatta con il direttore
-                    if(PeopleDB.search(record[2]) == null) PeopleDB.insert(record[2], new Person(record[2]));
-    
-                    //Se tutto è in ordine, finalmente l'oggetto Movie viene creato e inserito
-                    Movie newMovie = new Movie(record[0], Integer.valueOf(record[1]), Integer.valueOf(record[4]), cast.toArray(new Person[0]), new Person(record[2]));
-                    if(MoviesDB.search(record[0]) == null) MoviesDB.insert(record[0], newMovie);
-                }
-                i += 1;
+        int i = 0, index;
+        while(!isEOF){
+            index = i % (allowedPatterns.length);
+            try{
+                record[index] = reader.readLine().trim();
+            }catch(NullPointerException | IOException e){
+                if(e.getClass().equals(NullPointerException.class)) isEOF = true;
+                else e.printStackTrace();
             }
-        }catch(Exception e){
-            e.printStackTrace();
+            if(!record[index].matches(allowedPatterns[index])) throw new MovidaFileException();
+            else if(index == (allowedPatterns.length - 1) || isEOF){
+                //Elinazione dell'intestazione della riga
+                for(int j = 0; j < record.length; j++) record[j] = record[j].substring(record[j].indexOf(":") + 1).trim();
+                    
+                ArrayList<Person> cast = new ArrayList<>();
+                //La linea contenente il cast è spezzata usando la virgola come separatore
+                String[] values = record[3].split(",");
+                for(int k = 0; k < values.length; k++){
+                    values[k] = values[k].trim();
+                    //L'esistenza di ogni persona del cast è verificata, se non esiste già viene aggiunta a PeopleDB
+                    if(PeopleDB.search(values[k]) == null) PeopleDB.insert(values[k], new Person(values[k]));
+                    cast.add(new Person(values[k]));
+                }
+                //La stessa operazione è fatta con il direttore
+                if(PeopleDB.search(record[2]) == null) PeopleDB.insert(record[2], new Person(record[2]));
+    
+                //Se tutto è in ordine, finalmente l'oggetto Movie viene creato e inserito
+                Movie newMovie = new Movie(record[0], Integer.valueOf(record[1]), Integer.valueOf(record[4]), cast.toArray(Person[]::new), new Person(record[2]));
+                if(MoviesDB.search(record[0]) == null) MoviesDB.insert(record[0], newMovie);
+            }
+            i += 1;
         }
     }
 
@@ -275,7 +284,8 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
      */
     @Override
     public void clear() {
-        this.MoviesDB = this.PeopleDB = null;
+        this.PeopleDB.clear();
+        this.MoviesDB.clear();
     }
 
     /**
@@ -322,7 +332,8 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
      */
     @Override
     public Movie getMovieByTitle(String title) {
-        return (Movie)MoviesDB.search(title);
+        Coppia retVal = (Coppia) MoviesDB.search(title);
+        return (retVal == null) ? null : (Movie) retVal.getValue();
     }
 
     /**
@@ -333,7 +344,8 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
      */
     @Override
     public Person getPersonByName(String name) {
-        return (Person)PeopleDB.search(name);
+        Coppia retVal = (Coppia) PeopleDB.search(name);
+        return (retVal == null) ? null : (Person) retVal.getValue();
     }
 
     /**

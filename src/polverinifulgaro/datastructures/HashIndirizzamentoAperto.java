@@ -27,4 +27,9 @@ public class HashIndirizzamentoAperto implements IDizionario {
     public Object[] values() {
         return null;
     }
+    
+    @Override
+    public void clear(){
+    
+    }
 }

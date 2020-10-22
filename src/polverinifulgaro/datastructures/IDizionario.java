@@ -1,7 +1,6 @@
 package polverinifulgaro.datastructures;
 
 import java.util.Collection;
-
 public interface IDizionario {
     public void insert(Comparable key, Object value);
 
@@ -12,4 +11,6 @@ public interface IDizionario {
     public Object[] keys();
 
     public Object[] values();
+	
+	void clear();
 }

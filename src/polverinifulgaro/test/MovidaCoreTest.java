@@ -11,15 +11,18 @@ public class MovidaCoreTest {
     public static void main(String[] args) {
         MovidaCore core = new MovidaCore();
         core.loadFromFile(new File("/home/mattia/IdeaProjects/MOVIDA/docs/esempio-formato-dati.txt"));
-
+        
         System.out.println("--- FILM ---");
         for(Movie x : core.getAllMovies()) System.out.println(x.getTitle());
         System.out.println("--- REGISTI ---");
         for(Person x : core.getAllPeople()) System.out.println(x.getName());
+        
+        System.out.println(core.getPersonByName("Al Pacino"));
+        System.out.println(core.getMovieByTitle("Air Force One"));
     
-        System.out.println(core.getPersonByName("Quentin Tarantino"));
-        System.out.println(core.getPersonByName("Quentin Tarantulino"));
-        System.out.println(core.getMovieByTitle("Pulp Fiction"));
-        System.out.println(core.getMovieByTitle("Purr FFiction"));
+        core.clear();
+    
+        System.out.println(core.getPersonByName("Al Pacino"));
+        System.out.println(core.getMovieByTitle("Air Force One"));
     }
 }

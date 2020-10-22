@@ -1,16 +1,16 @@
 package polverinifulgaro.datastructures;
 
 public final class Coppia {
-    Comparable key;
-    Object value;
+    private Comparable key;
+    private Object value;
 
     public Coppia(Comparable key, Object value){
         this.key = key;
         this.value = value;
     }
 
-    Comparable getKey(){ return this.key; }
-    Object getValue(){ return this.value; }
+    public Comparable getKey(){ return this.key; }
+    public Object getValue(){ return this.value; }
 
     /**
      * Versione null-safe di compareTo tra coppie
