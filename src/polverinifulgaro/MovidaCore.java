@@ -7,20 +7,22 @@ import polverinifulgaro.datastructures.HashIndirizzamentoAperto;
 import polverinifulgaro.datastructures.IDizionario;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMovidaConfig, IMovidaDB  {
 
     private IDizionario MoviesDB;
     private IDizionario PeopleDB;
     private MapImplementation currentMapImplementation;
+    private SortingAlgorithm currentSortAlgo;
 
     public MovidaCore(){
         MoviesDB = new ArrayOrdinato();
         PeopleDB = new ArrayOrdinato();
         currentMapImplementation = MapImplementation.ArrayOrdinato;
+        currentSortAlgo = SortingAlgorithm.SelectionSort;
     }
     /**
      * Seleziona l'algoritmo di ordinamento.
@@ -32,7 +34,13 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
      */
     @Override
     public boolean setSort(SortingAlgorithm a) {
-        return false;
+        if(!a.equals(SortingAlgorithm.SelectionSort) && !a.equals(SortingAlgorithm.QuickSort)) return false;
+        else{
+            if(currentMapImplementation.toString().equals(a.toString())) return false;
+            else currentSortAlgo = a;
+            
+            return true;
+        }
     }
 
     /**
@@ -51,9 +59,9 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
             IDizionario MoviesDB_tmp = null;
             IDizionario PeopleDB_tmp = null;
 
-            if(MoviesDB.getClass().toString().equals(m.toString())) return false;
+            if(currentMapImplementation.toString().equals(m.toString())) return false;
 
-            if(MoviesDB.getClass().toString().equals("ArrayOrdinato")){
+            if(currentMapImplementation.toString().equals("ArrayOrdinato")){
                 MoviesDB_tmp = new HashIndirizzamentoAperto();
                 PeopleDB_tmp = new HashIndirizzamentoAperto();
                 currentMapImplementation = MapImplementation.HashIndirizzamentoAperto;
@@ -273,8 +281,29 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
      * @throws MovidaFileException in caso di errore di salvataggio
      */
     @Override
-    public void saveToFile(File f) {
-
+    public void saveToFile(File f){
+        if(f == null || !f.canWrite()) throw new MovidaFileException();
+        else{
+            BufferedWriter writer;
+            try{
+                writer = new BufferedWriter((new FileWriter(f, true)));
+            
+                for(Object x : MoviesDB.values()){
+                    writer.write("Title: " + ((Movie) x).getTitle() + "\n");
+                    writer.write("Year: " + ((Movie) x).getYear() + "\n");
+                    writer.write("Director: " + ((Movie) x).getDirector().getName() + "\n");
+                    String cast = "";
+                    for(Person y : ((Movie) x).getCast()) cast = cast + (y.getName() + ", ");
+                    writer.write("Cast: " + cast.substring(0, cast.lastIndexOf(",")) + "\n");
+                    writer.write("Votes: " + ((Movie) x).getVotes() + "\n");
+                    writer.newLine();
+                }
+                
+                writer.close();
+            }catch(IOException e){
+                throw new MovidaFileException();
+            }
+        }
     }
 
     /**
