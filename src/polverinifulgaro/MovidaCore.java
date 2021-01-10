@@ -8,8 +8,6 @@ import polverinifulgaro.datastructures.IDizionario;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMovidaConfig, IMovidaDB  {
 
@@ -59,9 +57,9 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
             IDizionario MoviesDB_tmp = null;
             IDizionario PeopleDB_tmp = null;
 
-            if(currentMapImplementation.toString().equals(m.toString())) return false;
+            if(currentMapImplementation.equals(m)) return false;
 
-            if(currentMapImplementation.toString().equals("ArrayOrdinato")){
+            if(currentMapImplementation.equals(MapImplementation.ArrayOrdinato)){
                 MoviesDB_tmp = new HashIndirizzamentoAperto();
                 PeopleDB_tmp = new HashIndirizzamentoAperto();
                 currentMapImplementation = MapImplementation.HashIndirizzamentoAperto;
@@ -280,7 +278,7 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
      * @param f il file su cui salvare i dati
      * @throws MovidaFileException in caso di errore di salvataggio
      */
-    @Override
+    @Override //TODO: duplica salvataggi...
     public void saveToFile(File f){
         if(f == null || !f.canWrite()) throw new MovidaFileException();
         else{

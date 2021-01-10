@@ -1,6 +1,5 @@
 package polverinifulgaro.sorting;
 
-import movida.commons.Person;
 import polverinifulgaro.datastructures.ArrayOrdinato;
 import polverinifulgaro.datastructures.IDizionario;
 
@@ -36,7 +35,8 @@ public class SelectionSort {
     public Object sort(IDizionario DB, String filter){
         if(DB == null) return null;
         else{
-        
+            System.out.println("This is selection sort");
+            return null;
         }
     }
     
