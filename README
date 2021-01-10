@@ -7,3 +7,37 @@ MOVIDA permette di:
 Il progetto è stato realizzato dagli studenti
 - Mattia Polverini 0000757994
 - Gabriele Fulgaro 0000772024
+
+STRUTTURE DATI
+[x] - ArrayOrdinato
+[x] - HashIndirizzamentoAperto
+ALGORITMI DI ORDINAMENTO
+[ ] - Quick Sort
+[ ] - Selection Sort
+MOVIDA CORE IMOVIEDB
+[x] - loadFromFile
+[x] - saveToFile
+[x] - clear
+[x] - countMovies
+[x] - countPeople
+[x] - deleteMovieByTitle
+[x] - getMovieByTitle
+[x] - getPersonByName
+[x] - getAllMovies
+[x] - getAllPeople
+MOVIDA CORE IMOVIDACONFIG
+[x] - setSort
+[x] - setMap
+MOVIDA CORE IMOVIDASEARCH
+[ ] - searchMoviesByTitle
+[ ] - searchMoviesInYear
+[ ] - searchMoviesDirectedBy
+[ ] - searchMoviesStarredBy
+[ ] - searchMostVotedMovies
+[ ] - searchMostRecentMovies
+[ ] - searchMostActiveActors
+MOVIDA CORE IMOVIDACOLLABORATIONGRAPH - possono essere utilizzate librerie esterne e built-in java
+[ ] - implementazione grafi
+[ ] - getDirectCollaboratorsOf
+[ ] - getTeamOf
+[ ] - maximizeCollaborationsInTheTeam

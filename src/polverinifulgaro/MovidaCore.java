@@ -198,6 +198,14 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
         return new Person[0];
     }
 
+    
+
+    /**
+     * This enumeration contains the attributes that a Movie is supposed to have.
+     * It is used to check the the file structure.
+     */
+    private final String[] allowedPatterns = {"Title:[ \\w||.:?!#]+", "Year: \\d{4}", "Director: [\\w .]+", "Cast: [\\w ,]+[^,]$", "Votes: \\d*", "\\s*"};
+    
     /**
      * Carica i dati da un file, organizzato secondo il formato MOVIDA (vedi esempio-formato-dati.txt)
      * <p>
@@ -215,13 +223,6 @@ public class MovidaCore implements /*IMovidaCollaborations,*/ IMovidaSearch, IMo
      * @param f il file da cui caricare i dati
      * @throws MovidaFileException in caso di errore di caricamento
      */
-
-    /**
-     * This enumeration contains the attributes that a Movie is supposed to have.
-     * It is used to check the the file structure.
-     */
-    private final String[] allowedPatterns = {"Title:[ \\w||.:?!#]+", "Year: \\d{4}", "Director: [\\w .]+", "Cast: [\\w ,]+[^,]$", "Votes: \\d*", "\\s*"};
-
     @Override
     public void loadFromFile(File f) {
         BufferedReader reader;
